@@ -1,235 +1,99 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <!-- Firebase SDKs -->
-<script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-firestore.js"></script>
-
-<script>
-const firebaseConfig = {
-  apiKey: "AIzaSyA6mdPPWRG3bhA6oGMPPwfob_hZS2sRvXw",
-  authDomain: "telegram-chat-app-d0119.firebaseapp.com",
-  projectId: "telegram-chat-app-d0119",
-  storageBucket: "telegram-chat-app-d0119.firebasestorage.app",
-  messagingSenderId: "968196632143",
-  appId: "1:968196632143:web:64781b8084fc6c62adc43a"
-};
-  const app = firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const db = firebase.firestore();
-</script>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Private Chat - Telegram Style</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Firebase Chat App</title>
   <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background-color: #1e1e2f;
-      color: white;
-    }.chat-container {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  max-width: 600px;
-  margin: auto;
-  border-left: 1px solid #333;
-  border-right: 1px solid #333;
-}
-
-.chat-header {
-  padding: 15px;
-  background-color: #2a2f4a;
-  font-size: 20px;
-  font-weight: bold;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.user-info {
-  font-size: 14px;
-}
-
-.chat-body {
-  flex: 1;
-  padding: 15px;
-  overflow-y: auto;
-  background-color: #252940;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.message {
-  padding: 10px 15px;
-  border-radius: 15px;
-  max-width: 70%;
-  word-wrap: break-word;
-}
-
-.sent {
-  background-color: #0078ff;
-  align-self: flex-end;
-}
-
-.received {
-  background-color: #444b75;
-  align-self: flex-start;
-}
-
-.chat-footer {
-  display: flex;
-  padding: 15px;
-  background-color: #2a2f4a;
-}
-
-.chat-footer input {
-  flex: 1;
-  padding: 10px;
-  border-radius: 8px;
-  border: none;
-  margin-right: 10px;
-  font-size: 16px;
-}
-
-.chat-footer button {
-  padding: 10px 20px;
-  background-color: #0078ff;
-  border: none;
-  border-radius: 8px;
-  color: white;
-  font-size: 16px;
-  cursor: pointer;
-}
-
-.login-screen {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-  background-color: #1e1e2f;
-}
-
-.login-screen input, .login-screen button {
-  margin: 10px;
-  padding: 10px;
-  font-size: 16px;
-  border-radius: 5px;
-}
-
-.logout-button {
-  padding: 8px 16px;
-  background-color: #ff4b5c;
-  border: none;
-  border-radius: 8px;
-  color: white;
-  font-size: 14px;
-  cursor: pointer;
-}
-
-  </style>  <!-- Firebase SDKs -->  <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-app.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-auth.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-firestore.js"></script>  <script>
+    body { margin:0; font-family:Arial,sans-serif; background:#1e1e2f; color:white; }
+    .login, .chat { max-width:600px; margin:auto; padding:20px; }
+    .login { display:flex; flex-direction:column; height:100vh; justify-content:center; }
+    .login input, .login button { margin:8px 0; padding:12px; font-size:16px; border-radius:4px; border:none; }
+    .chat { display:none; flex-direction:column; height:100vh; }
+    .chat-header { display:flex; justify-content:space-between; align-items:center; padding:12px; background:#2a2f4a; }
+    .chat-body { flex:1; padding:12px; overflow-y:auto; background:#252940; }
+    .chat-footer { display:flex; padding:12px; background:#2a2f4a; }
+    .chat-footer input { flex:1; padding:10px; border-radius:4px; border:none; margin-right:8px; }
+    .chat-footer button { padding:10px 16px; border:none; border-radius:4px; background:#0078ff; color:white; cursor:pointer; }
+    .message { margin:6px 0; padding:10px; border-radius:12px; max-width:70%; word-wrap:break-word; }
+    .sent { background:#0078ff; align-self:flex-end; }
+    .received { background:#444b75; align-self:flex-start; }
+  </style>
+  <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-firestore.js"></script>
+  <script>
     const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT.firebaseapp.com",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_PROJECT.appspot.com",
-      messagingSenderId: "YOUR_SENDER_ID",
-      appId: "YOUR_APP_ID"
+      apiKey: "AIzaSyA6mdPPWRG3bhA6oGMPPwfob_hZS2sRvXw",
+      authDomain: "telegram-chat-app-d0119.firebaseapp.com",
+      projectId: "telegram-chat-app-d0119",
+      storageBucket: "telegram-chat-app-d0119.firebasestorage.app",
+      messagingSenderId: "968196632143",
+      appId: "1:968196632143:web:64781b8084fc6c62adc43a"
     };
-
     const app = firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
-  </script></head>
-<body>
-  <div id="login" class="login-screen">
-    <h2>Login to Chat</h2>
-    <input type="email" id="email" placeholder="Email">
-    <input type="password" id="password" placeholder="Password">
-    <button onclick="loginUser()">Login</button>
-    <button onclick="registerUser()">Register</button>
-  </div>  <div id="chatApp" class="chat-container" style="display:none;">
-    <div class="chat-header">
-      💬 Private Chat
-      <div>
-        <span class="user-info" id="userEmail"></span>
-        <button class="logout-button" onclick="logoutUser()">Logout</button>
-      </div>
-    </div>
-    <div class="chat-body" id="chatBody">
-      <!-- Messages will appear here -->
-    </div>
-    <div class="chat-footer">
-      <input type="text" id="messageInput" placeholder="Type a message..." />
-      <button onclick="sendMessage()">Send</button>
-    </div>
-  </div>  <script>
-    let currentUserEmail = "";
 
-    function registerUser() {
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-      auth.createUserWithEmailAndPassword(email, password)
-        .then(() => loginUser())
-        .catch(err => alert(err.message));
+    function register() {
+      const e = document.getElementById('email').value;
+      const p = document.getElementById('pass').value;
+      auth.createUserWithEmailAndPassword(e, p).catch(alert);
     }
-
-    function loginUser() {
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-      auth.signInWithEmailAndPassword(email, password)
-        .then(userCred => {
-          currentUserEmail = userCred.user.email;
-          document.getElementById('login').style.display = 'none';
-          document.getElementById('chatApp').style.display = 'flex';
-          document.getElementById('userEmail').textContent = currentUserEmail;
-          listenMessages();
-        })
-        .catch(err => alert(err.message));
+    function login() {
+      const e = document.getElementById('email').value;
+      const p = document.getElementById('pass').value;
+      auth.signInWithEmailAndPassword(e, p).catch(alert);
     }
-
-    function logoutUser() {
-      auth.signOut().then(() => {
-        document.getElementById('chatApp').style.display = 'none';
-        document.getElementById('login').style.display = 'flex';
-        document.getElementById('email').value = '';
-        document.getElementById('password').value = '';
-        document.getElementById('chatBody').innerHTML = '';
-      });
+    function logout() {
+      auth.signOut();
     }
-
-    function sendMessage() {
-      const input = document.getElementById('messageInput');
-      const text = input.value.trim();
-      if (!text) return;
-
-      db.collection("messages").add({
-        text: text,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-        from: currentUserEmail
-      });
-
-      input.value = '';
+    function send() {
+      const t = document.getElementById('msg').value.trim();
+      if (!t) return;
+      db.collection('messages').add({ text: t, from: auth.currentUser.email, ts: firebase.firestore.FieldValue.serverTimestamp() });
+      document.getElementById('msg').value = '';
     }
-
-    function listenMessages() {
-      db.collection("messages")
-        .orderBy("timestamp")
-        .onSnapshot(snapshot => {
-          const chatBody = document.getElementById('chatBody');
-          chatBody.innerHTML = '';
-          snapshot.forEach(doc => {
-            const msg = doc.data();
+    auth.onAuthStateChanged(u => {
+      document.querySelector('.login').style.display = u ? 'none' : 'flex';
+      document.querySelector('.chat').style.display = u ? 'flex' : 'none';
+      if (u) {
+        document.getElementById('user').innerText = u.email;
+        db.collection('messages').orderBy('ts').onSnapshot(snap => {
+          const cb = document.getElementById('messages');
+          cb.innerHTML = '';
+          snap.forEach(d => {
+            const m = d.data();
             const div = document.createElement('div');
-            div.classList.add('message');
-            div.classList.add(msg.from === currentUserEmail ? 'sent' : 'received');
-            div.textContent = msg.text;
-            chatBody.appendChild(div);
+            div.className = 'message ' + (m.from === u.email ? 'sent' : 'received');
+            div.innerText = m.text;
+            cb.appendChild(div);
           });
-          chatBody.scrollTop = chatBody.scrollHeight;
+          cb.scrollTop = cb.scrollHeight;
         });
-    }
-  </script></body>
-</html>
+      }
+    });
+  </script>
+</head>
+<body>
+  <div class="login">
+    <h2>Login / Register</h2>
+    <input id="email" type="email" placeholder="Email">
+    <input id="pass" type="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+    <button onclick="register()">Register</button>
+  </div>
+  <div class="chat">
+    <div class="chat-header">
+      <span>💬 Chat</span>
+      <span id="user"></span>
+      <button onclick="logout()">Logout</button>
+    </div>
+    <div class="chat-body" id="messages"></div>
+    <div class="chat-footer">
+      <input id="msg" placeholder="Type a message...">
+      <button onclick="send()">Send</button>
+    </div>
+  </div>
+</body>
+  </html>
