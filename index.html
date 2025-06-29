@@ -1,0 +1,217 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Private Chat - Telegram Style</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #1e1e2f;
+      color: white;
+    }.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  max-width: 600px;
+  margin: auto;
+  border-left: 1px solid #333;
+  border-right: 1px solid #333;
+}
+
+.chat-header {
+  padding: 15px;
+  background-color: #2a2f4a;
+  font-size: 20px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.user-info {
+  font-size: 14px;
+}
+
+.chat-body {
+  flex: 1;
+  padding: 15px;
+  overflow-y: auto;
+  background-color: #252940;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.message {
+  padding: 10px 15px;
+  border-radius: 15px;
+  max-width: 70%;
+  word-wrap: break-word;
+}
+
+.sent {
+  background-color: #0078ff;
+  align-self: flex-end;
+}
+
+.received {
+  background-color: #444b75;
+  align-self: flex-start;
+}
+
+.chat-footer {
+  display: flex;
+  padding: 15px;
+  background-color: #2a2f4a;
+}
+
+.chat-footer input {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  margin-right: 10px;
+  font-size: 16px;
+}
+
+.chat-footer button {
+  padding: 10px 20px;
+  background-color: #0078ff;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.login-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-color: #1e1e2f;
+}
+
+.login-screen input, .login-screen button {
+  margin: 10px;
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 5px;
+}
+
+.logout-button {
+  padding: 8px 16px;
+  background-color: #ff4b5c;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+  </style>  <!-- Firebase SDKs -->  <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-app.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-auth.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-firestore.js"></script>  <script>
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    const app = firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+  </script></head>
+<body>
+  <div id="login" class="login-screen">
+    <h2>Login to Chat</h2>
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="password" placeholder="Password">
+    <button onclick="loginUser()">Login</button>
+    <button onclick="registerUser()">Register</button>
+  </div>  <div id="chatApp" class="chat-container" style="display:none;">
+    <div class="chat-header">
+      💬 Private Chat
+      <div>
+        <span class="user-info" id="userEmail"></span>
+        <button class="logout-button" onclick="logoutUser()">Logout</button>
+      </div>
+    </div>
+    <div class="chat-body" id="chatBody">
+      <!-- Messages will appear here -->
+    </div>
+    <div class="chat-footer">
+      <input type="text" id="messageInput" placeholder="Type a message..." />
+      <button onclick="sendMessage()">Send</button>
+    </div>
+  </div>  <script>
+    let currentUserEmail = "";
+
+    function registerUser() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      auth.createUserWithEmailAndPassword(email, password)
+        .then(() => loginUser())
+        .catch(err => alert(err.message));
+    }
+
+    function loginUser() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      auth.signInWithEmailAndPassword(email, password)
+        .then(userCred => {
+          currentUserEmail = userCred.user.email;
+          document.getElementById('login').style.display = 'none';
+          document.getElementById('chatApp').style.display = 'flex';
+          document.getElementById('userEmail').textContent = currentUserEmail;
+          listenMessages();
+        })
+        .catch(err => alert(err.message));
+    }
+
+    function logoutUser() {
+      auth.signOut().then(() => {
+        document.getElementById('chatApp').style.display = 'none';
+        document.getElementById('login').style.display = 'flex';
+        document.getElementById('email').value = '';
+        document.getElementById('password').value = '';
+        document.getElementById('chatBody').innerHTML = '';
+      });
+    }
+
+    function sendMessage() {
+      const input = document.getElementById('messageInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      db.collection("messages").add({
+        text: text,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        from: currentUserEmail
+      });
+
+      input.value = '';
+    }
+
+    function listenMessages() {
+      db.collection("messages")
+        .orderBy("timestamp")
+        .onSnapshot(snapshot => {
+          const chatBody = document.getElementById('chatBody');
+          chatBody.innerHTML = '';
+          snapshot.forEach(doc => {
+            const msg = doc.data();
+            const div = document.createElement('div');
+            div.classList.add('message');
+            div.classList.add(msg.from === currentUserEmail ? 'sent' : 'received');
+            div.textContent = msg.text;
+            chatBody.appendChild(div);
+          });
+          chatBody.scrollTop = chatBody.scrollHeight;
+        });
+    }
+  </script></body>
+</html>
