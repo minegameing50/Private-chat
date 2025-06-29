@@ -1,5 +1,23 @@
 <!DOCTYPE html><html lang="en">
 <head>
+  <!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-firestore.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyA6mdPPWRG3bhA6oGMPPwfob_hZS2sRvXw",
+  authDomain: "telegram-chat-app-d0119.firebaseapp.com",
+  projectId: "telegram-chat-app-d0119",
+  storageBucket: "telegram-chat-app-d0119.firebasestorage.app",
+  messagingSenderId: "968196632143",
+  appId: "1:968196632143:web:64781b8084fc6c62adc43a"
+};
+  const app = firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+</script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Private Chat - Telegram Style</title>
